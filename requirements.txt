@@ -1,0 +1,8 @@
+# Even CS Agent - Python Dependencies
+
+# LLM Integration
+google-generativeai>=0.3.0
+
+# Optional: For future enhancements
+# requests>=2.31.0  # For Shopify API (Skill Worker)
+# python-dotenv>=1.0.0  # For environment variables

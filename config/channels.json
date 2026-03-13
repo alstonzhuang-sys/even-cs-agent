@@ -1,0 +1,10 @@
+{
+  "external": ["discord"],
+  "internal": ["feishu"],
+  "fallback": "external",
+  "rosen_contact": {
+    "feishu_id": "ou_xxx",
+    "name": "Rosen (罗雄胜)"
+  },
+  "note": "Replace ou_xxx with Rosen's actual Feishu ID"
+}
