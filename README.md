@@ -139,7 +139,7 @@
 |-----------|---------|--------------|
 | **Ingress Normalizer** | Standardize input | Channel detection, Payload normalization |
 | **Router** | Intent classification | Regex (90%) + LLM (10%), Hard-coded worker assignment |
-| **Knowledge Worker** | Answer questions | Tiered injection (Tier 1-4), Hot-reload |
+| **Knowledge Worker** | Answer questions | 2-tier injection (Core + Extended), Hot-reload |
 | **Skill Worker** | Execute actions | API calls (Phase 2) |
 | **Escalation Worker** | Handle gaps | Learning loop, Daily reports |
 | **Renderer** | Format output | Sentence-level filtering, Debug info |
@@ -155,14 +155,20 @@
 - **10% LLM Classification**: Handles edge cases with Gemini 2 Flash
 - **Hard-coded Worker Assignment**: No LLM guessing
 
-### 📚 Full Context Injection
+### 📚 2-Tier Context Injection
 
-- **Tier 1 (Core)**: Always injected - Hardware specs, pricing (~6KB)
-- **Tier 2 (Policies)**: Always injected - Return/refund/shipping (~11KB)
-- **Tier 3 (Golden)**: Few-shot injection - Q&A examples (~2KB)
-- **Tier 4 (Niche)**: Dynamic injection - Long-tail knowledge (Phase 2)
+**Core (Tier 1)**: Always injected
+- `kb_core.md` - Hardware specs, pricing (~6KB)
+- `kb_policies.md` - Return/refund/shipping (~11KB)
 
-**Total Context**: ~19KB per query (<1% of Gemini 2 Flash capacity)
+**Extended (Tier 2)**: Confidence-based injection
+- **High confidence (≥ 0.7)**: Intent-based selective injection
+  - `specs_query` → `kb_golden.md`
+  - `return_request` → `kb_manual.md`
+  - `prescription_query` → `kb_prescription.md`
+- **Low confidence (< 0.7)**: Inject all extended KB (safety net)
+
+**Average Context**: ~20KB per query (<1% of Gemini 2 Flash capacity)
 
 ### 🔄 Learning Loop
 
@@ -392,7 +398,8 @@ python3 scripts/output_switch.py --get-surface discord
    Confidence: 1.0 (Regex)
 
 3. Knowledge Worker
-   Context: Inject Tier 1 (kb_core.md) + Tier 2 (kb_policies.md)
+   Context: Inject Core KB (kb_core.md + kb_policies.md)
+   Confidence: 1.0 → No extended KB needed
    LLM: Gemini 2 Flash (Temperature=0)
    Response: "The G2 has a battery life of 3-4 hours with typical use."
 
@@ -425,7 +432,8 @@ python3 scripts/output_switch.py --get-surface discord
    Confidence: 0.8 (LLM)
 
 3. Knowledge Worker
-   Context: Inject Tier 1 + Tier 2 (includes shipping policies)
+   Context: Inject Core KB (includes shipping policies)
+   Confidence: 0.8 → Inject extended KB (kb_golden.md)
    LLM: Gemini 2 Flash (Temperature=0)
    Response: "Standard shipping takes 5-7 business days. Express shipping takes 2-3 business days."
 
@@ -458,7 +466,8 @@ python3 scripts/output_switch.py --get-surface discord
    Confidence: 0.8 (LLM)
 
 3. Knowledge Worker
-   Context: Inject Tier 1 + Tier 2
+   Context: Inject Core KB
+   Confidence: 0.8 → Inject extended KB (kb_golden.md)
    LLM: Gemini 2 Flash (Temperature=0)
    Response: "G2 电池续航 3-4 小时（典型使用）。"
 
