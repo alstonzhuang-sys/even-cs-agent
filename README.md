@@ -13,12 +13,17 @@
 
 **Before using this skill, you MUST configure it:**
 
-1. **Copy configuration template:**
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Copy configuration template:**
    ```bash
    cp config/channels.json.example config/channels.json
    ```
 
-2. **Edit `config/channels.json` and replace `ou_xxx` with actual Feishu ID:**
+3. **Edit `config/channels.json` and replace `ou_xxx` with actual Feishu ID:**
    ```json
    {
      "rosen_contact": {
@@ -28,15 +33,13 @@
    }
    ```
 
-3. **Set Gemini API key:**
+4. **Set Gemini API key:**
    ```bash
    export GEMINI_API_KEY="your_gemini_api_key_here"
    ```
 
-4. **Verify configuration:**
+5. **Verify configuration:**
    ```bash
-   python3 validate_config.py
-   # Or run health check
    python3 scripts/health_check.py
    ```
 
