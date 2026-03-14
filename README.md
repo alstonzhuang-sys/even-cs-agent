@@ -1,4 +1,4 @@
-# Even CS Agent (DivaD v2.2)
+# Even CS Agent (DivaD v3.0)
 
 > 🤖 Intelligent Customer Support Agent for Even Realities  
 > Built on OpenClaw | Powered by Gemini 2 Flash
@@ -35,7 +35,7 @@
 
 4. **Verify configuration:**
    ```bash
-   python3 validate_config.py
+   python3 scripts/health_check.py
    # Or run health check
    python3 scripts/health_check.py
    ```
@@ -264,7 +264,7 @@ Replace `ou_xxx` with Rosen's actual Feishu ID:
 ### Step 5: Validate Configuration
 
 ```bash
-python3 validate_config.py
+python3 scripts/health_check.py
 ```
 
 **Expected Output:**
@@ -361,13 +361,13 @@ python3 scripts/output_switch.py --get-surface discord
 #### Run All Tests
 
 ```bash
-./test_ingress.sh
-./test_router.sh
-./test_flow.sh
-./test_knowledge_worker.sh
-./test_escalation_worker.sh
-./test_renderer.sh
-./test_output_switch.sh
+./test.sh
+./test.sh
+./test.sh
+./test.sh
+./test.sh
+./test.sh
+./test.sh
 ```
 
 ---
@@ -583,16 +583,16 @@ python3 scripts/output_switch.py --get-surface discord
 cd ~/.openclaw/workspace/even-cs-agent
 
 # Test each component
-./test_ingress.sh
-./test_router.sh
-./test_flow.sh
-./test_knowledge_worker.sh
-./test_escalation_worker.sh
-./test_renderer.sh
-./test_output_switch.sh
+./test.sh
+./test.sh
+./test.sh
+./test.sh
+./test.sh
+./test.sh
+./test.sh
 
 # Validate configuration
-python3 validate_config.py
+python3 scripts/health_check.py
 ```
 
 ### Test Results
@@ -617,7 +617,7 @@ python3 validate_config.py
 - [ ] Set `GEMINI_API_KEY` environment variable
 - [ ] Create `config/channels.json`
 - [ ] Replace `ou_xxx` with Rosen's actual Feishu ID
-- [ ] Run `python3 validate_config.py`
+- [ ] Run `python3 scripts/health_check.py`
 - [ ] Run all test scripts
 - [ ] Verify all tests pass
 

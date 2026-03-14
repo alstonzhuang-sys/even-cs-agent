@@ -38,13 +38,21 @@ PATTERNS = {
     
     # ===== HIGH-RISK OPERATIONS (Skill Worker) =====
     "order_status": [
+        # English patterns
         r"order\s*#?\d{4,}",
         r"where is my.*order",
         r"track.*shipment",
         r"shipping.*status",
         r"delivery.*status",
         r"when will.*arrive",
-        r"order.*tracking"
+        r"order.*tracking",
+        # Chinese patterns
+        r"订单.*在哪",
+        r"快递.*到哪",
+        r"什么时候.*到",
+        r"物流.*信息",
+        r"订单.*状态",
+        r"发货.*了吗"
     ],
     
     "return_request": [
@@ -67,6 +75,7 @@ PATTERNS = {
     
     # ===== KNOWLEDGE QUERIES (Knowledge Worker) =====
     "specs_query": [
+        # English patterns
         r"battery.*life",
         r"how much.*cost",
         r"what.*price",
@@ -82,10 +91,26 @@ PATTERNS = {
         r"ip\d+",
         r"warranty",
         r"g1.*g2.*difference",
-        r"compare.*g1.*g2"
+        r"compare.*g1.*g2",
+        # Chinese patterns
+        r"电池.*续航",
+        r"多少.*钱",
+        r"什么.*价格",
+        r"价格.*多少",
+        r"支持.*语言",
+        r"兼容.*吗",
+        r"重量",
+        r"显示.*效果",
+        r"分辨率",
+        r"视场角",
+        r"蓝牙",
+        r"充电.*时间",
+        r"防水",
+        r"保修"
     ],
     
     "policy_query": [
+        # English patterns
         r"return.*policy",
         r"refund.*policy",
         r"warranty.*period",
@@ -93,7 +118,16 @@ PATTERNS = {
         r"ship.*to",
         r"customs.*fee",
         r"delivery.*time",
-        r"how long.*ship"
+        r"how long.*ship",
+        # Chinese patterns
+        r"退货.*政策",
+        r"退款.*政策",
+        r"保修.*期",
+        r"运费",
+        r"邮费",
+        r"发货.*时间",
+        r"多久.*到",
+        r"配送.*时间"
     ],
     
     "competitor_comparison": [
@@ -108,6 +142,7 @@ PATTERNS = {
     ],
     
     "troubleshooting": [
+        # English patterns
         r"not.*work",
         r"broken",
         r"error",
@@ -115,7 +150,16 @@ PATTERNS = {
         r"can't.*connect",
         r"won't.*charge",
         r"display.*issue",
-        r"bluetooth.*problem"
+        r"bluetooth.*problem",
+        # Chinese patterns
+        r"不能.*充电",
+        r"无法.*连接",
+        r"蓝牙.*断开",
+        r"显示.*不清楚",
+        r"镜片.*模糊",
+        r"坏了",
+        r"故障",
+        r"问题"
     ]
 }
 

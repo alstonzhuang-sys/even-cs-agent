@@ -1,195 +1,104 @@
 #!/usr/bin/env python3
 """
-Knowledge Worker - Full Context Injection with Tiered Strategy
+Knowledge Worker - Simplified 2-Tier Context Injection
 
 Purpose:
-1. Inject knowledge base files into LLM context based on tier strategy
+1. Inject knowledge base files into LLM context with 2-tier strategy
 2. Support hot-reload (auto-discover new .md files)
 3. Use Gemini 2 Flash for generation
 
 Tier Strategy:
-- Tier 1 (Core): Always injected - Hardware specs, SKU, pricing
-- Tier 2 (Policies): Always injected - Return/refund/shipping policies
-- Tier 3 (Golden): Few-shot injection - Golden Q&A examples (style guide)
-- Tier 4 (Niche): Dynamic injection - Long-tail troubleshooting (on-demand)
+- Core (Tier 1): Always injected - kb_core.md, kb_policies.md
+- Extended (Tier 2): Confidence-based injection
+  - High confidence (>= 0.7): Intent-based selective injection
+  - Low confidence (< 0.7): Inject all extended KB (safety net)
 
 Usage:
-    python3 knowledge_worker.py "What's the battery life?" "specs_query" "external"
-    python3 knowledge_worker.py "退货政策是什么？" "policy_query" "internal"
+    python3 knowledge_worker.py "What's the battery life?" "specs_query" "external" --confidence 0.9
+    python3 knowledge_worker.py "退货政策是什么？" "policy_query" "internal" --confidence 0.6
 """
 
 import os
 import sys
 import json
-import re
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import List
 
 # Knowledge base directory
 KB_DIR = Path(__file__).parent.parent / "knowledge"
 
-# Tier definitions (based on metadata)
-TIER_STRATEGY = {
-    1: "always",      # Core facts - always inject
-    2: "always",      # Policies - always inject
-    3: "few_shot",    # Golden examples - inject 3-5 examples
-    4: "dynamic"      # Niche knowledge - inject on-demand
+# Tier 1: Core KB (Always inject)
+CORE_KB = ["kb_core.md", "kb_policies.md"]
+
+# Tier 2: Extended KB (Intent-based injection)
+EXTENDED_MAP = {
+    "specs_query": ["kb_golden.md"],
+    "policy_query": ["kb_golden.md"],
+    "return_request": ["kb_manual.md"],
+    "prescription_query": ["kb_prescription.md"],
+    "competitor_comparison": ["kb_golden.md"],
+    "troubleshooting": ["kb_manual.md"]
 }
 
 
-def parse_metadata(content: str) -> Dict:
+def read_kb_file(filename: str) -> str:
     """
-    Parse YAML frontmatter from markdown file.
+    Read knowledge base file.
     
     Args:
-        content: File content
+        filename: KB file name
         
     Returns:
-        dict: Metadata (visibility, keyTags, owner, tier, etc.)
+        str: File content (empty if not found)
     """
-    # Extract YAML frontmatter
-    match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
-    if not match:
-        return {}
+    kb_path = KB_DIR / filename
+    if not kb_path.exists():
+        return ""
     
-    yaml_text = match.group(1)
-    metadata = {}
-    
-    # Parse simple YAML (key: value)
-    for line in yaml_text.split('\n'):
-        if ':' in line:
-            key, value = line.split(':', 1)
-            key = key.strip()
-            value = value.strip()
-            
-            # Handle lists (e.g., keyTags: [tag1, tag2])
-            if value.startswith('[') and value.endswith(']'):
-                value = [v.strip().strip('"\'') for v in value[1:-1].split(',')]
-            
-            metadata[key] = value
-    
-    return metadata
+    try:
+        with open(kb_path, 'r', encoding='utf-8') as f:
+            return f.read()
+    except Exception as e:
+        print(f"Warning: Failed to read {filename}: {e}", file=sys.stderr)
+        return ""
 
 
-def extract_content(content: str) -> str:
+def build_context(intent: str, confidence: float, surface: str) -> str:
     """
-    Extract content (remove YAML frontmatter).
-    
-    Args:
-        content: File content
-        
-    Returns:
-        str: Content without frontmatter
-    """
-    # Remove YAML frontmatter
-    content = re.sub(r'^---\s*\n.*?\n---\s*\n', '', content, flags=re.DOTALL)
-    return content.strip()
-
-
-def discover_knowledge_files() -> List[Tuple[Path, Dict, str]]:
-    """
-    Auto-discover all .md files in knowledge/ directory.
-    
-    Returns:
-        List of (file_path, metadata, content) tuples
-    """
-    files = []
-    
-    if not KB_DIR.exists():
-        return files
-    
-    for md_file in KB_DIR.glob("*.md"):
-        try:
-            with open(md_file, 'r', encoding='utf-8') as f:
-                raw_content = f.read()
-            
-            metadata = parse_metadata(raw_content)
-            content = extract_content(raw_content)
-            
-            files.append((md_file, metadata, content))
-        except Exception as e:
-            print(f"Warning: Failed to read {md_file}: {e}", file=sys.stderr)
-    
-    return files
-
-
-def determine_tier(metadata: Dict, filename: str) -> int:
-    """
-    Determine tier from metadata or filename.
-    
-    Priority:
-    1. Explicit 'tier' field in metadata
-    2. Infer from filename (kb_core.md → Tier 1)
-    3. Default to Tier 4 (dynamic)
-    
-    Args:
-        metadata: File metadata
-        filename: File name
-        
-    Returns:
-        int: Tier number (1-4)
-    """
-    # Explicit tier in metadata
-    if 'tier' in metadata:
-        try:
-            return int(metadata['tier'])
-        except:
-            pass
-    
-    # Infer from filename
-    filename_lower = filename.lower()
-    if 'core' in filename_lower:
-        return 1
-    elif 'polic' in filename_lower:
-        return 2
-    elif 'golden' in filename_lower:
-        return 3
-    else:
-        return 4
-
-
-def build_context(intent: str, surface: str) -> str:
-    """
-    Build LLM context by injecting knowledge files based on tier strategy.
+    Build LLM context with 2-tier injection strategy.
     
     Args:
         intent: User intent (from Router)
+        confidence: Confidence score (0.0-1.0)
         surface: external or internal
         
     Returns:
         str: Full context for LLM
     """
-    # Discover all knowledge files
-    files = discover_knowledge_files()
-    
-    # Sort by tier
-    files_by_tier = {1: [], 2: [], 3: [], 4: []}
-    for file_path, metadata, content in files:
-        tier = determine_tier(metadata, file_path.name)
-        files_by_tier[tier].append((file_path, metadata, content))
-    
-    # Build context
     context_parts = []
     
-    # Tier 1: Core (Always inject)
-    for file_path, metadata, content in files_by_tier[1]:
-        context_parts.append(f"# {file_path.name}\n\n{content}")
+    # ===== Tier 1: Core (Always inject) =====
+    for kb_file in CORE_KB:
+        content = read_kb_file(kb_file)
+        if content:
+            context_parts.append(f"# {kb_file}\n\n{content}")
     
-    # Tier 2: Policies (Always inject)
-    for file_path, metadata, content in files_by_tier[2]:
-        context_parts.append(f"# {file_path.name}\n\n{content}")
+    # ===== Tier 2: Extended (Confidence-based) =====
+    if confidence >= 0.7:
+        # High confidence: Intent-based selective injection
+        extended_files = EXTENDED_MAP.get(intent, [])
+    else:
+        # Low confidence: Inject all extended KB (safety net)
+        extended_files = []
+        for kb_file in KB_DIR.glob("kb_*.md"):
+            if kb_file.name not in CORE_KB:
+                extended_files.append(kb_file.name)
     
-    # Tier 3: Golden (Few-shot - inject 5 examples)
-    for file_path, metadata, content in files_by_tier[3]:
-        # Extract first 5 Q&A pairs (simplified)
-        lines = content.split('\n')
-        sample_lines = lines[:200]  # Rough approximation
-        context_parts.append(f"# {file_path.name} (Sample)\n\n" + '\n'.join(sample_lines))
-    
-    # Tier 4: Niche (Dynamic - inject if intent matches)
-    # TODO: Implement semantic matching for Tier 4
-    # For now, skip Tier 4 (will implement in Phase 2)
+    for kb_file in extended_files:
+        content = read_kb_file(kb_file)
+        if content:
+            context_parts.append(f"# {kb_file}\n\n{content}")
     
     return "\n\n---\n\n".join(context_parts)
 
@@ -263,15 +172,18 @@ def main():
     parser.add_argument("message", help="User message")
     parser.add_argument("intent", help="Intent from Router")
     parser.add_argument("surface", choices=["external", "internal"], help="Surface type")
+    parser.add_argument("--confidence", type=float, default=0.8, help="Confidence score (0.0-1.0)")
     parser.add_argument("--debug", action="store_true", help="Show context")
     
     args = parser.parse_args()
     
     # Build context
-    context = build_context(args.intent, args.surface)
+    context = build_context(args.intent, args.confidence, args.surface)
     
     if args.debug:
         print("=== Context ===")
+        print(f"Confidence: {args.confidence}")
+        print(f"Context size: {len(context)} chars")
         print(context[:1000] + "..." if len(context) > 1000 else context)
         print("\n=== Response ===")
     
