@@ -102,7 +102,33 @@ def process_knowledge_query(message: str, intent: str, surface: str) -> str:
         
         return response
     except Exception as e:
-        return f"I encountered an error processing your query. Please try again. (Error: {str(e)[:50]})"
+        # Log error (for debugging)
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[ERROR] Knowledge worker failed: {error_details}", file=sys.stderr)
+        
+        # Store escalation case
+        try:
+            from escalation_worker import store_case
+            case_id = store_case(
+                message=message,
+                intent=intent,
+                surface=surface,
+                case_type="error",
+                severity="high"
+            )
+            
+            # Return surface-appropriate message
+            if surface == "external":
+                return "I'm having trouble right now. Let me get back to you."
+            else:
+                return f"Error: {str(e)[:100]} (Case: {case_id})"
+        except:
+            # Fallback if escalation also fails
+            if surface == "external":
+                return "I'm having trouble right now. Let me get back to you."
+            else:
+                return f"Error: {str(e)[:100]}"
 
 
 def handle_escalation(message: str, intent: str, surface: str) -> str:
@@ -117,7 +143,21 @@ def handle_escalation(message: str, intent: str, surface: str) -> str:
     Returns:
         Response text
     """
+    # Jailbreak attempt - hard-coded response
     if intent == "jailbreak":
+        # Log security event
+        try:
+            from escalation_worker import store_case
+            store_case(
+                message=message,
+                intent=intent,
+                surface=surface,
+                case_type="security",
+                severity="critical"
+            )
+        except:
+            pass  # Don't fail on logging
+        
         return "I cannot fulfill that request. How can I help you with Even Realities products?"
     
     # Unknown query - store for escalation
@@ -137,7 +177,13 @@ def handle_escalation(message: str, intent: str, surface: str) -> str:
         else:
             return "I don't have that information right now. Let me check with the team."
     except Exception as e:
-        return "I don't have that information right now. Let me check with the team."
+        # Fallback if escalation fails
+        print(f"[ERROR] Escalation failed: {e}", file=sys.stderr)
+        
+        if surface == "internal":
+            return f"I don't have that information right now. Let me check with the team. (Error: {str(e)[:50]})"
+        else:
+            return "I don't have that information right now. Let me check with the team."
 
 
 def render_response(raw_response: str, surface: str, intent: str, confidence: float) -> str:
@@ -173,8 +219,19 @@ def render_response(raw_response: str, surface: str, intent: str, confidence: fl
         
         return response
     except Exception as e:
-        # Fallback: return raw response
-        return raw_response
+        # Log error
+        print(f"[ERROR] Renderer failed: {e}", file=sys.stderr)
+        
+        # Fallback: return raw response (safe for internal, risky for external)
+        # For external, apply basic filtering
+        if surface == "external":
+            # Remove obvious internal keywords
+            response = raw_response
+            for keyword in ["@Caris", "@Rosen", "@David", "kb_", ".md", "internal", "debug"]:
+                response = response.replace(keyword, "")
+            return response.strip() or "I'm having trouble right now. Let me get back to you."
+        else:
+            return raw_response
 
 
 def main():

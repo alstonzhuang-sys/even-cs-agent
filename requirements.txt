@@ -1,8 +1,9 @@
 # Even CS Agent - Python Dependencies
 
-# LLM Integration
+# Core dependency for LLM classification and knowledge queries
 google-generativeai>=0.3.0
 
-# Optional: For future enhancements
-# requests>=2.31.0  # For Shopify API (Skill Worker)
-# python-dotenv>=1.0.0  # For environment variables
+# Note: No other dependencies required
+# - Router uses built-in 're' module (Regex)
+# - JSON handling uses built-in 'json' module
+# - File operations use built-in 'pathlib' module
