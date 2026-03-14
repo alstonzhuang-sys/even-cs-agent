@@ -40,6 +40,7 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
 
 # Temporary files
 *.tmp
@@ -53,5 +54,5 @@ escalations/*.jsonl
 test_output/
 *.test
 
-# Configuration (optional - uncomment if you don't want to track config)
-# config/channels.json
+# Configuration (actual config with real IDs should not be committed)
+config/channels.json

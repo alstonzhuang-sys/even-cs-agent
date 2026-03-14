@@ -1,4 +1,4 @@
-# Even CS Agent (DivaD v2.1)
+# Even CS Agent (DivaD v2.2)
 
 > 🤖 Intelligent Customer Support Agent for Even Realities  
 > Built on OpenClaw | Powered by Gemini 2 Flash
@@ -6,6 +6,39 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-Skill-blue)](https://openclaw.ai)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-green)](https://github.com/alstonzhuang/even-cs-agent)
+
+---
+
+## ⚠️ IMPORTANT: Configuration Required
+
+**Before using this skill, you MUST configure it:**
+
+1. **Copy configuration template:**
+   ```bash
+   cp config/channels.json.example config/channels.json
+   ```
+
+2. **Edit `config/channels.json` and replace `ou_xxx` with actual Feishu ID:**
+   ```json
+   {
+     "rosen_contact": {
+       "feishu_id": "ou_ceae7c2ca21c67c92ae07f04d6347a81",  // ✅ Replace this
+       "name": "Rosen"
+     }
+   }
+   ```
+
+3. **Set Gemini API key:**
+   ```bash
+   export GEMINI_API_KEY="your_gemini_api_key_here"
+   ```
+
+4. **Verify configuration:**
+   ```bash
+   python3 validate_config.py
+   # Or run health check
+   python3 scripts/health_check.py
+   ```
 
 ---
 
@@ -186,7 +219,11 @@ cd even-cs-agent
 ### Step 2: Install Dependencies
 
 ```bash
-pip3 install google-generativeai
+# For development (allows upgrades)
+pip3 install -r requirements.txt
+
+# For production (locked versions)
+pip3 install -r requirements.lock
 ```
 
 ### Step 3: Set API Key
@@ -203,7 +240,10 @@ echo $GEMINI_API_KEY
 ### Step 4: Configure Channels
 
 ```bash
-# Edit config/channels.json
+# Copy configuration template
+cp config/channels.json.example config/channels.json
+
+# Edit configuration
 nano config/channels.json
 ```
 
