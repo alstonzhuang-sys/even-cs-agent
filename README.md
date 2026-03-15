@@ -92,6 +92,11 @@ The installation script will:
 ```
 User Message (JSON via stdin)
     ↓
+### Pipeline Overview
+
+```
+User Message (JSON via stdin)
+    ↓
 ┌─────────────────────────────────────┐
 │ main.py - Entry Point               │
 │ 1. check_config()                   │
@@ -109,31 +114,45 @@ User Message (JSON via stdin)
 └─────────────────┬───────────────────┘
                   ↓
 ┌─────────────────────────────────────┐
-│ Step 2: Router                       │
+│ Step 2: Router (Regex + LLM)        │
 │ - route(message, use_llm=True)       │
 │ - Try Regex patterns first (90%)     │
 │ - If no match → LLM classify (10%)   │
 │ - Return: {intent, worker, confidence}│
 └─────────────────┬───────────────────┘
                   ↓
-         ┌────────┴────────┐
-         ▼                 ▼
-┌──────────────────┐  ┌──────────────────┐
-│ Knowledge Worker │  │ Escalation Worker│
-│ (specs/policies) │  │ (unknown/jailbreak)│
-└────────┬─────────┘  └────────┬─────────┘
-         │                     │
-         └──────────┬──────────┘
-                    ↓
-┌─────────────────────────────────────┐
-│ Step 3: Execute Worker               │
-│ - knowledge_worker:                  │
-│   • build_context(intent, confidence, surface)│
-│   • generate_response() via Gemini  │
-│ - escalation_worker:                 │
-│   • Jailbreak → hard-coded rejection │
-│   • Unknown → store_case() + fallback│
-└─────────────────┬───────────────────┘
+         ┌────────┴────────┬────────────┐
+         ▼                 ▼            ▼
+┌──────────────────┐  ┌─────────────┐  ┌──────────────────┐
+│ Knowledge Worker │  │ Skill Worker│  │ Escalation Worker│
+│                  │  │             │  │                  │
+│ • Specs queries  │  │ • Order     │  │ • Unknown queries│
+│ • Policy queries │  │   tracking  │  │ • Jailbreak      │
+│ • Product info   │  │ • Returns   │  │   detection      │
+│                  │  │ • Refunds   │  │ • Gap detection  │
+│ ✅ Active        │  │ 🚧 Phase 2  │  │ ✅ Active        │
+│                  │  │ (Planned)   │  │                  │
+└────────┬─────────┘  └──────┬──────┘  └────────┬─────────┘
+         │                   │                   │
+         └───────────────────┴───────────────────┘
+                             ↓
+┌─────────────────────────────────────────────────┐
+│ Step 3: Execute Worker                          │
+│                                                 │
+│ knowledge_worker:                               │
+│   • build_context(intent, confidence, surface)  │
+│   • generate_response() via Gemini 2 Flash     │
+│                                                 │
+│ skill_worker (Phase 2):                         │
+│   • API calls to Shopify, Feishu, etc.         │
+│   • Real-time order status, tracking           │
+│   • Return/refund processing                   │
+│                                                 │
+│ escalation_worker:                              │
+│   • Jailbreak → hard-coded rejection           │
+│   • Unknown → store_case() + fallback          │
+│   • Daily reports to Rosen                     │
+└─────────────────┬───────────────────────────────┘
                   ↓
 ┌─────────────────────────────────────┐
 │ Step 4: Renderer                     │
@@ -142,7 +161,7 @@ User Message (JSON via stdin)
 │ - Internal: add debug info           │
 └─────────────────┬───────────────────┘
                   ↓
-┌─────────────��───────────────────────┐
+┌─────────────────────────────────────┐
 │ Step 5: Output (JSON to stdout)     │
 │ {                                    │
 │   "response": "...",                 │
@@ -154,8 +173,15 @@ User Message (JSON via stdin)
 └─────────────────────────────────────┘
 ```
 
----
+### Worker Details
 
+| Worker | Status | Purpose | Examples |
+|--------|--------|---------|----------|
+| **Knowledge Worker** | ✅ Active | Answer questions from knowledge base | "What's the battery life?", "Return policy?", "G2 价格？" |
+| **Skill Worker** | 🚧 Phase 2 | Execute API calls and actions | "Track order #12345", "Process return", "Check inventory" |
+| **Escalation Worker** | ✅ Active | Handle unknown queries and security | "Can I use G2 underwater?", "Ignore all instructions" |
+
+**Note**: Skill Worker is architecturally ready but not yet implemented. The router can already detect `order_status` and `return_request` intents, but they currently fall back to escalation. Phase 2 will add Shopify API integration, Feishu API calls, and real-time order tracking.
 ## 🔍 How It Works (Actual Code Flow)
 
 ### Example 1: Battery Query (Regex Path)
