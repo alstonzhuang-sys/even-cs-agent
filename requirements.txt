@@ -1,0 +1,9 @@
+# Even CS Agent - Python Dependencies
+
+# Core dependency for LLM classification and knowledge queries
+google-generativeai>=0.3.0
+
+# Note: No other dependencies required
+# - Router uses built-in 're' module (Regex)
+# - JSON handling uses built-in 'json' module
+# - File operations use built-in 'pathlib' module

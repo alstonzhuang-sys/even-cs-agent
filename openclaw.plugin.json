@@ -1,0 +1,67 @@
+{
+  "id": "even-cs-agent",
+  "name": "Even CS Agent",
+  "version": "3.0.0",
+  "description": "Intelligent customer support agent for Even Realities (G1/G2 AR glasses)",
+  "author": "Alston Zhuang",
+  "license": "MIT",
+  "repository": "https://github.com/alstonzhuang-sys/even-cs-agent",
+  "main": "main.py",
+  "runtime": "python3",
+  "dependencies": {
+    "python": ">=3.8",
+    "packages": [
+      "google-generativeai>=0.3.0"
+    ]
+  },
+  "config": {
+    "required": [
+      "GEMINI_API_KEY"
+    ],
+    "files": [
+      "config/channels.json"
+    ],
+    "setup_instructions": [
+      "1. Install dependencies: pip3 install -r requirements.txt",
+      "2. Copy config template: cp config/channels.json.example config/channels.json",
+      "3. Edit config/channels.json and replace ou_xxx with actual Feishu ID",
+      "4. Set API key: export GEMINI_API_KEY='your_key_here'",
+      "5. Verify: python3 scripts/health_check.py"
+    ]
+  },
+  "capabilities": {
+    "channels": ["discord", "feishu", "telegram", "slack"],
+    "surfaces": {
+      "external": ["discord", "telegram"],
+      "internal": ["feishu", "slack"]
+    },
+    "features": [
+      "Knowledge-based Q&A",
+      "Intent classification (Regex + LLM)",
+      "2-tier context injection",
+      "Hot-reload knowledge base",
+      "Escalation handling",
+      "Learning loop"
+    ]
+  },
+  "triggers": {
+    "keywords": [
+      "G1", "G2", "R1",
+      "battery", "price", "specs",
+      "return", "refund", "shipping",
+      "order", "track",
+      "prescription", "lens"
+    ],
+    "patterns": [
+      ".*Even Realities.*",
+      ".*smart glasses.*",
+      ".*AR glasses.*"
+    ]
+  },
+  "metadata": {
+    "category": "customer-support",
+    "tags": ["customer-service", "knowledge-base", "ai-agent", "even-realities"],
+    "homepage": "https://github.com/alstonzhuang-sys/even-cs-agent",
+    "documentation": "https://github.com/alstonzhuang-sys/even-cs-agent/blob/main/README.md"
+  }
+}
