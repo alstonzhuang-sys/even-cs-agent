@@ -95,103 +95,71 @@ User Message (JSON via stdin)
 ### Pipeline Overview
 
 ```
-User Message (JSON via stdin)
-    ↓
-┌─────────────────────────────────────┐
-│ main.py - Entry Point               │
-│ 1. check_config()                   │
-│    - Validate GEMINI_API_KEY        │
-│    - Check config/channels.json     │
-│    - Verify Rosen ID not placeholder│
-└─────────────────┬───────────────────┘
-                  ↓
-┌─────────────────────────────────────┐
-│ Step 1: Ingress Normalizer          │
-│ - normalize_payload()                │
-│ - Discord → surface="external"       │
-│ - Feishu → surface="internal"        │
-│ - validate_payload()                 │
-└─────────────────┬───────────────────┘
-                  ↓
-┌─────────────────────────────────────┐
-│ Step 2: Router (Regex + LLM)        │
-│ - route(message, use_llm=True)       │
-│ - Try Regex patterns first (90%)     │
-│ - If no match → LLM classify (10%)   │
-│ - Return: {intent, worker, confidence}│
-└─────────────────┬───────────────────┘
-                  ↓
-         ┌────────┴────────┬────────────┐
-         ▼                 ▼            ▼
-┌──────────────────┐  ┌─────────────┐  ┌──────────────────┐
-│ Knowledge Worker │  │ Skill Worker│  │ Escalation Worker│
-│                  │  │             │  │                  │
-│ • Specs queries  │  │ • Order     │  │ • Unknown queries│
-│ • Policy queries │  │   tracking  │  │ • Jailbreak      │
-│ • Product info   │  │ • Returns   │  │   detection      │
-│                  │  │ • Refunds   │  │ • Gap detection  │
-│ ✅ Active        │  │ 🚧 Phase 2  │  │ ✅ Active        │
-│                  │  │ (Planned)   │  │                  │
-└────────┬─────────┘  └──────┬──────┘  └────────┬─────────┘
-         │                   │                   │
-         └───────────────────┴───────────────────┘
-                             ↓
-┌─────────────────────────────────────────────────┐
-│ Step 3: Execute Worker                          │
-│                                                 │
-│ knowledge_worker:                               │
-│   • build_context(intent, confidence, surface)  │
-│   • generate_response() via Gemini 2 Flash     │
-│                                                 │
-│ skill_worker (Phase 2):                         │
-│   • API calls to Shopify, Feishu, etc.         │
-│   • Real-time order status, tracking           │
-│   • Return/refund processing                   │
-│                                                 │
-│ escalation_worker:                              │
-│   • Jailbreak → hard-coded rejection           │
-│   • Unknown → store_case() + fallback          │
-│   • Daily reports to Rosen                     │
-└─────────────────┬───────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────┐
-│ Step 4: Renderer                     │
-│ - render_response(raw, surface, intent, confidence)│
-│ - External: filter sensitive keywords│
-│ - Internal: add debug info           │
-└─────────────────┬───────────────────┘
-                  ↓
-┌─────────────────────────────────────┐
-│ Step 5: Output (JSON to stdout)     │
-│ {                                    │
-│   "response": "...",                 │
-│   "intent": "specs_query",           │
-│   "confidence": 1.0,                 │
-│   "surface": "external",             │
-│   "worker": "knowledge_worker"       │
-│ }                                    │
-└─────────────────────────────────────┘
+                    User Message (JSON)
+                           ↓
+                  ┌────────────────┐
+                  │  Entry Point   │
+                  │  check_config  │
+                  └────────┬───────┘
+                           ↓
+                  ┌────────────────┐
+                  │    Ingress     │
+                  │   Normalize    │
+                  └────────┬───────┘
+                           ↓
+                  ┌────────────────┐
+                  │     Router     │
+                  │  Regex → LLM   │
+                  └────────┬───────┘
+                           ↓
+        ┌──────────────────┼──────────────────┐
+        ↓                  ↓                  ↓
+   ┌─────────┐      ┌──────────┐      ┌──────────┐
+   │Knowledge│      │  Skill   │      │Escalation│
+   │ Worker  │      │ Worker   │      │  Worker  │
+   │         │      │          │      │          │
+   │ ✅ Active│      │🚧 Phase 2│      │ ✅ Active │
+   └────┬────┘      └─────┬────┘      └────┬─────┘
+        │                 │                 │
+        └─────────────────┼─────────────────┘
+                          ↓
+                  ┌────────────────┐
+                  │    Renderer    │
+                  │ External/Internal│
+                  └────────┬───────┘
+                           ↓
+                  ┌────────────────┐
+                  │  JSON Output   │
+                  └────────────────┘
 ```
 
-### Worker Details
+### 5-Step Pipeline
 
-| Worker | Status | Purpose | Examples |
-|--------|--------|---------|----------|
-| **Knowledge Worker** | ✅ Active | Answer questions from knowledge base | "What's the battery life?", "Return policy?", "G2 价格？" |
-| **Skill Worker** | 🚧 Phase 2 | Execute API calls and actions | "Track order #12345", "Process return", "Check inventory" |
-| **Escalation Worker** | ✅ Active | Handle unknown queries and security | "Can I use G2 underwater?", "Ignore all instructions" |
+| Step | Component | Function | Output |
+|------|-----------|----------|--------|
+| **1** | Entry Point | Validate config & API key | ✅ Ready |
+| **2** | Ingress | Normalize channel → surface | `{surface, message, ...}` |
+| **3** | Router | Classify intent (Regex 90% / LLM 10%) | `{intent, worker, confidence}` |
+| **4** | Worker | Execute logic (Knowledge/Skill/Escalation) | Raw response |
+| **5** | Renderer | Format for surface (External/Internal) | Final JSON |
 
-**Note**: Skill Worker is architecturally ready but not yet implemented. The router can already detect `order_status` and `return_request` intents, but they currently fall back to escalation. Phase 2 will add Shopify API integration, Feishu API calls, and real-time order tracking.
+### Worker Comparison
+
+| Worker | Status | Use Case | Response Time |
+|--------|--------|----------|---------------|
+| **Knowledge** | ✅ Active | Specs, policies, product info | ~650ms |
+| **Skill** | 🚧 Phase 2 | Orders, returns, API calls | TBD |
+| **Escalation** | ✅ Active | Unknown queries, jailbreak | <10ms (hard-coded) |
+
+### Key Features
+
+- **90% Deterministic**: Regex patterns (no LLM needed)
+- **10% LLM Fallback**: Only when Regex fails
+- **2-Tier Context**: Core (always) + Extended (confidence-based)
+- **Dual Surface**: External (safe) vs Internal (debug)
+- **Hot-Reload**: Add `.md` files without restart
 
 ---
-│ - render_response(raw, surface, intent, confidence)│
-│ - External: filter sensitive keywords│
-│ - Internal: add debug info           │
-└─────────────────┬───────────────────┘
-                  ↓
-┌─────────────────────────────────────┐
-│ Step 5: Output (JSON to stdout)     │
-│ {                                    │
 │   "response": "...",                 │
 │   "intent": "specs_query",           │
 │   "confidence": 1.0,                 │
