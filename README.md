@@ -90,11 +90,6 @@ The installation script will:
 ### Pipeline Overview
 
 ```
-User Message (JSON via stdin)
-    ↓
-### Pipeline Overview
-
-```
                     User Message (JSON)
                            ↓
                   ┌────────────────┐
