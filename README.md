@@ -164,16 +164,10 @@ The installation script will:
 └─────────────────────────────────────┘
 ```
 
-### Worker Details
-
-| Worker | Status | Purpose | Examples |
-|--------|--------|---------|----------|
-| **Knowledge Worker** | ✅ Active | Answer questions from knowledge base | "What's the battery life?", "Return policy?", "G2 价格？" |
-| **Skill Worker** | 🚧 Phase 2 | Execute API calls and actions | "Track order #12345", "Process return", "Check inventory" |
-| **Escalation Worker** | ✅ Active | Handle unknown queries and security | "Can I use G2 underwater?", "Ignore all instructions" |
-
 **Note**: Skill Worker is architecturally ready but not yet implemented. The router can already detect `order_status` and `return_request` intents, but they currently fall back to escalation. Phase 2 will add Shopify API integration, Feishu API calls, and real-time order tracking.
 ## 🔍 How It Works (Actual Code Flow)
+
+---
 
 ### Example 1: Battery Query (Regex Path)
 
