@@ -7,6 +7,13 @@
   "license": "MIT",
   "repository": "https://github.com/alstonzhuang-sys/even-cs-agent",
   "main": "main.py",
+  "skills": [
+    {
+      "name": "even-cs-agent",
+      "description": "Intelligent customer support agent for Even Realities (G1/G2 AR glasses). Handles product specs, shipping, returns, troubleshooting queries across Discord (external) and Feishu (internal).",
+      "file": "SKILL.md"
+    }
+  ],
   "runtime": "python3",
   "dependencies": {
     "python": ">=3.8",

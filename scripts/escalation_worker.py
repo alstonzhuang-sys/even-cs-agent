@@ -37,8 +37,21 @@ ESCALATION_DIR.mkdir(exist_ok=True)
 # Knowledge base directory
 KB_DIR = Path(__file__).parent.parent / "knowledge"
 
-# Rosen's contact info
-ROSEN_FEISHU_ID = "ou_xxx"  # TODO: Replace with actual Feishu ID
+# Configuration directory
+CONFIG_DIR = Path(__file__).parent.parent / "config"
+
+
+def get_rosen_feishu_id() -> str:
+    """Load Rosen's Feishu ID from config/channels.json."""
+    config_file = CONFIG_DIR / "channels.json"
+    if config_file.exists():
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            return config.get("rosen_contact", {}).get("feishu_id", "ou_xxx")
+        except Exception:
+            pass
+    return "ou_xxx"
 
 
 def generate_case_id() -> str:
@@ -52,7 +65,7 @@ def generate_case_id() -> str:
     return now.strftime("ESC-%Y%m%d-%H%M%S-") + str(now.microsecond)
 
 
-def store_case(message: str, intent: str, surface: str, metadata: Dict = None) -> str:
+def store_case(message: str, intent: str, surface: str, metadata: Dict = None, case_type: str = None, severity: str = None) -> str:
     """
     Store escalation case to temporary storage.
     
@@ -78,15 +91,23 @@ def store_case(message: str, intent: str, surface: str, metadata: Dict = None) -
         "metadata": metadata or {}
     }
     
-    # Determine escalation type
-    if intent == "jailbreak":
+    # Determine escalation type (explicit params override auto-detection)
+    if case_type:
+        case["type"] = case_type
+    elif intent == "jailbreak":
         case["type"] = "security"
-        case["severity"] = "high"
     elif intent == "unknown":
         case["type"] = "gap"
-        case["severity"] = "medium"
     else:
         case["type"] = "other"
+    
+    if severity:
+        case["severity"] = severity
+    elif intent == "jailbreak":
+        case["severity"] = "high"
+    elif intent == "unknown":
+        case["severity"] = "medium"
+    else:
         case["severity"] = "low"
     
     # Save to file
@@ -279,8 +300,9 @@ def send_report_to_rosen(report: str, date: str):
     print("=" * 80)
     print(report)
     print("=" * 80)
+    rosen_id = get_rosen_feishu_id()
     print(f"\nTo send to Rosen: Use feishu_im_user_message tool")
-    print(f"Target: {ROSEN_FEISHU_ID}")
+    print(f"Target: {rosen_id}")
 
 
 def main():

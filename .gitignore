@@ -56,3 +56,4 @@ test_output/
 
 # Configuration (actual config with real IDs should not be committed)
 config/channels.json
+escalations/rate_limit.json

@@ -33,6 +33,7 @@ try:
     from ingress import normalize_payload, validate_payload
     from router import route
     from output_switch import load_config, get_surface
+    from rate_limiter import check_rate_limit
 except ImportError as e:
     print(json.dumps({"error": f"Failed to import modules: {e}"}), file=sys.stderr)
     sys.exit(1)
@@ -287,6 +288,19 @@ def main():
         sys.exit(1)
     
     surface = payload["surface"]
+    
+    # Step 1.5: Rate limit check
+    is_allowed, rejection_msg = check_rate_limit(sender_id, message)
+    if not is_allowed:
+        output = {
+            "response": rejection_msg,
+            "intent": "rate_limited",
+            "confidence": 1.0,
+            "surface": surface,
+            "worker": "rate_limiter"
+        }
+        print(json.dumps(output, ensure_ascii=False))
+        return
     
     # Step 2: Route to worker
     routing = route(message, use_llm=True)

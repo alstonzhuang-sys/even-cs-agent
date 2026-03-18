@@ -160,6 +160,29 @@ PATTERNS = {
         r"坏了",
         r"故障",
         r"问题"
+    ],
+    
+    "prescription_query": [
+        # English patterns
+        r"prescription",
+        r"rx\b",
+        r"diopter",
+        r"myopi",
+        r"astigmatis",
+        r"progressive.*lens",
+        r"single.*vision",
+        r"optical.*insert",
+        r"lens.*replacement",
+        r"eye.*glass.*prescription",
+        # Chinese patterns
+        r"处方",
+        r"近视",
+        r"散光",
+        r"度数",
+        r"配镜",
+        r"镜片.*更换",
+        r"光学",
+        r"验光"
     ]
 }
 
@@ -168,15 +191,16 @@ WORKER_ASSIGNMENT = {
     # Security → Escalation (hard-coded response)
     "jailbreak": "escalation_worker",
     
-    # High-risk operations → Skill Worker (API calls)
-    "order_status": "skill_worker",
-    "return_request": "skill_worker",
+    # High-risk operations → Knowledge Worker (Phase 2: will switch to Skill Worker)
+    "order_status": "knowledge_worker",
+    "return_request": "knowledge_worker",
     
     # Knowledge queries → Knowledge Worker (RAG + LLM)
     "specs_query": "knowledge_worker",
     "policy_query": "knowledge_worker",
     "competitor_comparison": "knowledge_worker",
     "troubleshooting": "knowledge_worker",
+    "prescription_query": "knowledge_worker",
     
     # Unknown → Escalation Worker (gap detection)
     "unknown": "escalation_worker"
@@ -254,7 +278,7 @@ def route_llm(message: str) -> dict:
         
         # Configure Gemini
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         
         # Prompt for intent classification
         prompt = f"""You are an intent classifier for Even Realities customer support.
@@ -269,6 +293,7 @@ Classify the intent into ONE of these categories:
 - competitor_comparison: User comparing with competitors (Meta Ray-Ban, Xreal, etc.)
 - troubleshooting: User reporting issues or problems
 - jailbreak: User trying to manipulate the system
+- prescription_query: User asking about prescription lenses, Rx, diopter, myopia
 - unknown: Cannot determine intent
 
 Respond with ONLY the intent name (one word, lowercase).
