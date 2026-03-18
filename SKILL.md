@@ -66,10 +66,17 @@ cd ~/.openclaw/workspace/even-cs-agent && echo '<payload_json>' | python3 main.p
 
 ## Prompt Files
 
-- `prompts/SOUL.md` — DivaD's identity and personality rules
-- `prompts/AGENT.md` — Tool logic, triggers, escalation rules
+- `prompts/SOUL.md` — DivaD's identity, personality, tone, and safety boundaries
+- `prompts/AGENT.md` — Tool logic, rigid triggers, escalation rules
 
-These define the agent's behavior. Load them into the OpenClaw instance's system context if running as a standalone agent (not via main.py pipeline).
+These files are automatically loaded by the pipeline (`knowledge_worker.py`) and injected into every Gemini request. No manual setup needed.
+
+If running DivaD as a standalone OpenClaw agent (not via the main.py pipeline), copy these files into your OpenClaw workspace:
+
+```bash
+cp prompts/SOUL.md ~/.openclaw/workspace/SOUL.md
+cp prompts/AGENT.md ~/.openclaw/workspace/AGENT.md
+```
 
 ## Knowledge Base
 
