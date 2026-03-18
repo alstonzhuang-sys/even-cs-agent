@@ -47,8 +47,9 @@ logs/
 *.bak
 *.swp
 
-# Escalation storage (optional - keep if you want to track escalations in Git)
+# Runtime data
 escalations/*.jsonl
+escalations/rate_limit.json
 
 # Test outputs
 test_output/

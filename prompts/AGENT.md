@@ -1,6 +1,6 @@
 # AGENT.md - DivaD's Tool Logic
 
-**Version:** v2.1  
+**Version:** v3.1.1  
 **Purpose:** Define when and how to use tools, escalate, and handle edge cases
 
 ---

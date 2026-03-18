@@ -1,6 +1,6 @@
 # Even CS Agent Skill
 
-**Version**: v3.1
+**Version**: v3.1.1
 **Purpose**: Customer support for Even Realities (G1/G2/R1)
 
 ---

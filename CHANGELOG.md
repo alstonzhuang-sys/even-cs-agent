@@ -1,122 +1,51 @@
-# Even CS Agent v3.0 - Changelog
+# Changelog
+
+## [3.1.1] - 2026-03-18
+
+### Cleanup & Polish
+- Unified all version numbers to v3.1.1
+- Removed obsolete files (AUDIT_REPORT.md, INSTALLATION.md, init_github.sh, docs/, utils/)
+- Replaced old test.sh with 7 modular test scripts
+- Rewrote README with clear examples and architecture details
+- Cleaned up .gitignore
+
+### Bug Fixes
+- Fixed `store_case()` signature mismatch — `main.py` passed `case_type`/`severity` but function didn't accept them
+- Fixed unterminated f-string in `knowledge_worker.py` (sandbox prompt)
+- Unified Gemini model to `gemini-2.0-flash` across all files (router, knowledge_worker, health_check were inconsistent)
+
+### New Features
+- Rate limiting: 5 msg/min per user + repeat detection (same message 3x → suggest human agent)
+- Prompt injection sandbox: user input wrapped in `<user_input>` tags
+- Prescription intent: regex patterns (EN + CN) for prescription/Rx/lens queries
+- Structured JSON logger (`scripts/logger.py`) — logs to stderr, doesn't pollute stdout
+- Non-interactive install: `FEISHU_ID=x GEMINI_API_KEY=y ./install.sh`
+- Daily report script reads Rosen ID from config + includes cron setup instructions
+
+### Improvements
+- SKILL.md slimmed from ~300 to ~80 lines (low-end model friendly)
+- `openclaw.plugin.json` now includes `skills` field for auto-discovery
+- Rosen Feishu ID unified to read from `config/channels.json` (removed hardcoded `ou_xxx`)
+- `order_status` / `return_request` now route to `knowledge_worker` instead of returning "coming soon"
+- `max_output_tokens` aligned to 300 (per spec, was 500)
+- Added `.env.example`
 
 ## [3.0.0] - 2026-03-15
 
-### 🎉 Major Release - Production Ready
-
-#### ✅ Fixed Issues
-1. **Function signature mismatch** (Critical)
-   - Fixed `build_context()` call in `main.py` - now includes `confidence` parameter
-   - Fixed renderer import - now uses `render_response()` function
-
-2. **Gemini API model update**
-   - Changed from `gemini-2.0-flash-exp` (404) to `gemini-2.0-flash` (working)
-   - Model is now stable and production-ready
-
-3. **Missing plugin configuration**
-   - Added `openclaw.plugin.json` with complete metadata
-   - OpenClaw can now recognize and load this as a plugin
-
-4. **Indentation error in main.py**
-   - Removed duplicate code block at end of file
-   - File now parses correctly
-
-#### 🚀 New Features
-1. **Automated installation script** (`install.sh`)
-   - Interactive setup wizard
-   - Automatic dependency installation
-   - Configuration file creation
-   - API key setup
-   - Health check verification
-
-2. **Comprehensive test suite** (`test.sh`)
-   - 8 test categories (Ingress, Router, Knowledge Worker, Renderer, etc.)
-   - End-to-end integration tests
-   - Colored output with pass/fail summary
-
-3. **Plugin metadata** (`openclaw.plugin.json`)
-   - Complete plugin definition
-   - Dependency specifications
-   - Setup instructions
-   - Capability declarations
-
-#### 📚 Documentation Updates
-- Updated README.md with installation instructions
-- Added troubleshooting section
-- Clarified configuration requirements
-- Added examples for all major use cases
-
-#### 🔧 Technical Improvements
-1. **Error handling**
-   - Better fallback messages
-   - Graceful degradation when components fail
-   - Detailed error logging
-
-2. **Code quality**
-   - Fixed all syntax errors
-   - Improved function signatures
-   - Better type hints
-
-3. **Configuration validation**
-   - Pre-flight checks before execution
-   - Clear error messages for missing config
-   - Placeholder detection
-
-#### 🧪 Testing
-- All 8 test categories passing
-- End-to-end tests verified
-- Manual testing completed
-
-#### 📦 Dependencies
-- `google-generativeai>=0.3.0` (with deprecation warning - future migration needed)
-- Python 3.8+ required
-
----
+### Major Release
+- Fixed `build_context()` signature mismatch
+- Fixed renderer import
+- Updated Gemini model to `gemini-2.0-flash` (stable)
+- Added `openclaw.plugin.json`
+- Added `install.sh` automated setup
+- Added comprehensive test suite
+- Production-ready pipeline: Ingress → Router → Worker → Renderer
 
 ## [2.2.0] - 2026-03-14
 
-### Initial GitHub Release
+### Initial Release
 - Basic pipeline implementation
-- Knowledge base structure
-- Router with Regex + LLM
+- Knowledge base structure (Core/Policies/Golden/Manual/Prescription)
+- Router with Regex + LLM fallback
 - 2-tier context injection
-- Escalation handling
-
----
-
-## Migration Notes
-
-### From v2.2 to v3.0
-1. Run `./install.sh` for automated setup
-2. Or manually:
-   - Update `config/channels.json` with actual Feishu ID
-   - Set `GEMINI_API_KEY` environment variable
-   - Run `python3 scripts/health_check.py` to verify
-
-### Known Issues
-- `google-generativeai` package is deprecated (warning shown)
-  - Future versions will migrate to `google-genai`
-  - Current version still works, but will need migration
-
-### Breaking Changes
-- None (v3.0 is backward compatible with v2.2 configuration)
-
----
-
-## Roadmap
-
-### v3.1 (Planned)
-- [ ] Migrate to `google-genai` package
-- [ ] Add more Chinese Regex patterns
-- [ ] Implement caching for common queries
-- [ ] Add metrics/analytics
-
-### v4.0 (Future)
-- [ ] Skill Worker implementation (API calls)
-- [ ] Shopify integration
-- [ ] Order tracking
-- [ ] Advanced escalation routing
-
----
-
-**Full Changelog**: https://github.com/alstonzhuang-sys/even-cs-agent/compare/v2.2...v3.0
+- Escalation handling with learning loop

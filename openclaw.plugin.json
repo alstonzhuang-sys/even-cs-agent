@@ -1,7 +1,7 @@
 {
   "id": "even-cs-agent",
   "name": "Even CS Agent",
-  "version": "3.0.0",
+  "version": "3.1.1",
   "description": "Intelligent customer support agent for Even Realities (G1/G2 AR glasses)",
   "author": "Alston Zhuang",
   "license": "MIT",
