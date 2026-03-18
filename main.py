@@ -34,6 +34,7 @@ try:
     from router import route
     from output_switch import load_config, get_surface
     from rate_limiter import check_rate_limit
+    from logger import info, warn, error as log_error
 except ImportError as e:
     print(json.dumps({"error": f"Failed to import modules: {e}"}), file=sys.stderr)
     sys.exit(1)
@@ -54,6 +55,7 @@ def check_config():
     # Check 1: API key
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
+        log_error("config", "GEMINI_API_KEY not set")
         print(json.dumps({
             "error": "GEMINI_API_KEY not set",
             "help": "Set with: export GEMINI_API_KEY='your_key_here'"
@@ -64,8 +66,8 @@ def check_config():
     try:
         config = load_config()
     except Exception as e:
+        log_error("config", f"Failed to load configuration: {e}")
         print(json.dumps({
-            "error": f"Failed to load configuration: {e}",
             "help": "Create config/channels.json from config/channels.json.example"
         }), file=sys.stderr)
         sys.exit(1)
@@ -106,7 +108,7 @@ def process_knowledge_query(message: str, intent: str, surface: str) -> str:
         # Log error (for debugging)
         import traceback
         error_details = traceback.format_exc()
-        print(f"[ERROR] Knowledge worker failed: {error_details}", file=sys.stderr)
+        log_error("knowledge_worker", "Knowledge worker failed", details=error_details)
         
         # Store escalation case
         try:
@@ -179,7 +181,7 @@ def handle_escalation(message: str, intent: str, surface: str) -> str:
             return "I don't have that information right now. Let me check with the team."
     except Exception as e:
         # Fallback if escalation fails
-        print(f"[ERROR] Escalation failed: {e}", file=sys.stderr)
+        log_error("escalation_worker", f"Escalation failed: {e}")
         
         if surface == "internal":
             return f"I don't have that information right now. Let me check with the team. (Error: {str(e)[:50]})"
@@ -214,7 +216,7 @@ def render_response(raw_response: str, surface: str, intent: str, confidence: fl
         return response
     except Exception as e:
         # Log error
-        print(f"[ERROR] Renderer failed: {e}", file=sys.stderr)
+        log_error("renderer", f"Renderer failed: {e}")
         
         # Fallback: return raw response (safe for internal, risky for external)
         # For external, apply basic filtering

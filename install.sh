@@ -1,5 +1,11 @@
 #!/bin/bash
 # install.sh - Automated installation script for Even CS Agent
+#
+# Interactive mode (default):
+#   ./install.sh
+#
+# Non-interactive mode (for automation):
+#   FEISHU_ID=ou_xxx GEMINI_API_KEY=your_key ./install.sh
 
 set -e  # Exit on error
 
@@ -45,10 +51,15 @@ else
 fi
 echo ""
 
-# Step 4: Prompt for Feishu ID
+# Step 4: Configure Feishu ID
 echo "Step 4: Configuring Rosen's Feishu ID..."
-echo -e "${YELLOW}Please enter Rosen's Feishu ID (format: ou_xxx):${NC}"
-read -p "> " feishu_id
+feishu_id="${FEISHU_ID:-}"
+
+if [ -z "$feishu_id" ]; then
+    # Interactive mode
+    echo -e "${YELLOW}Please enter Rosen's Feishu ID (format: ou_xxx):${NC}"
+    read -p "> " feishu_id
+fi
 
 if [ -z "$feishu_id" ]; then
     echo -e "${RED}❌ Feishu ID cannot be empty${NC}"
@@ -57,21 +68,24 @@ fi
 
 # Replace placeholder in config
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
     sed -i '' "s/ou_xxx/$feishu_id/g" config/channels.json
 else
-    # Linux
     sed -i "s/ou_xxx/$feishu_id/g" config/channels.json
 fi
 
 echo -e "${GREEN}✅ Feishu ID configured: $feishu_id${NC}"
 echo ""
 
-# Step 5: Prompt for API key
+# Step 5: Configure API key
 echo "Step 5: Setting up Gemini API key..."
-echo -e "${YELLOW}Please enter your Gemini API key:${NC}"
-read -s -p "> " api_key
-echo ""
+api_key="${GEMINI_API_KEY:-}"
+
+if [ -z "$api_key" ]; then
+    # Interactive mode
+    echo -e "${YELLOW}Please enter your Gemini API key:${NC}"
+    read -s -p "> " api_key
+    echo ""
+fi
 
 if [ -z "$api_key" ]; then
     echo -e "${RED}❌ API key cannot be empty${NC}"
@@ -111,7 +125,7 @@ if python3 scripts/health_check.py; then
     echo ""
     echo "Next steps:"
     echo "1. Reload your shell: source $SHELL_RC"
-    echo "2. Test the agent: ./test.sh"
+    echo "2. Test the agent: ./test_all.sh"
     echo "3. Read SKILL.md for OpenClaw integration"
     echo ""
 else

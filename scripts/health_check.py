@@ -132,7 +132,7 @@ def check_llm_connection():
     try:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         response = model.generate_content(
             "Test",
             generation_config={"max_output_tokens": 5, "temperature": 0}
