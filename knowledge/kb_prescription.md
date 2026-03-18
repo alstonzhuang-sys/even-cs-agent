@@ -42,3 +42,4 @@ Calculate **Spherical Equivalent (SE) = SPH + ½ CYL**.
 *   **User Replacement:** **STRICTLY PROHIBITED**. The lenses are integrated with the optical waveguide display.
 *   **Warning:** Attempting to remove lenses will damage the display and **void the warranty**.
 *   **Official Process:** Contact `support@evenrealities.com` -> Provide New Rx -> Paid Custom Service -> Professional Factory Installation.
+

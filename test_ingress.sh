@@ -36,3 +36,4 @@ run_test "Message preserved" '"message": "battery life"' "$result"
 
 echo "  Passed: $PASS, Failed: $FAIL"
 [ $FAIL -eq 0 ]
+

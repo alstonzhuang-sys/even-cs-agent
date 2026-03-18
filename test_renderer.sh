@@ -45,3 +45,4 @@ run_test "Internal has confidence" "0.95" "$result"
 
 echo "  Passed: $PASS, Failed: $FAIL"
 [ $FAIL -eq 0 ]
+

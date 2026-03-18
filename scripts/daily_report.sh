@@ -63,3 +63,4 @@ fi
 
 # Cleanup
 rm -f "$REPORT_FILE"
+

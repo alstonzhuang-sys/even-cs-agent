@@ -36,3 +36,4 @@ rm -f "escalations/${TODAY}.jsonl"
 
 echo "  Passed: $PASS, Failed: $FAIL"
 [ $FAIL -eq 0 ]
+

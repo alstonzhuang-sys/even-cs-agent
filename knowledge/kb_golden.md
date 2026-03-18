@@ -368,3 +368,4 @@ This applies to both models.
 
 **Q100: Can I buy a replacement charging case for G1?**
 **A:** Yes, but ensure you buy the **G1 Charging Case** (wireless), as it differs from the G2 case.
+

@@ -96,3 +96,4 @@ The estimated delivery time for products displayed on the official website's ord
 
 ## 5. REACH Compliance
 * **SVHC Disclosure:** Products contain SVHCs > 0.1% by weight (details in PDF), but do not pose safety risk under normal use.
+

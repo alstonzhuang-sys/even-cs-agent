@@ -41,3 +41,4 @@ def warn(component: str, message: str, **extra):
 
 def error(component: str, message: str, **extra):
     log("ERROR", component, message, **extra)
+

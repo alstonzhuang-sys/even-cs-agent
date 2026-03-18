@@ -155,3 +155,4 @@ This document contains the authoritative hardware specifications, pricing, and c
 | | EU | €799 (Base) |
 | **Even R1** | US | $299 |
 | | EU | €349 |
+

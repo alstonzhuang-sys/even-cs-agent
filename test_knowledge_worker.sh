@@ -47,3 +47,4 @@ run_test "Low confidence → all extended" "low_conf_inject:OK" "$result"
 
 echo "  Passed: $PASS, Failed: $FAIL"
 [ $FAIL -eq 0 ]
+

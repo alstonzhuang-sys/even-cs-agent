@@ -78,3 +78,4 @@ run_test "jailbreak → escalation_worker" '"worker": "escalation_worker"' "$res
 
 echo "  Passed: $PASS, Failed: $FAIL"
 [ $FAIL -eq 0 ]
+
