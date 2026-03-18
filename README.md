@@ -28,8 +28,8 @@ DivaD handles Tier-1 customer support for Even Realities AR smart glasses (G1, G
 ## Quick Start
 
 ```bash
-# Clone
-cd ~/.openclaw/workspace
+# Clone into OpenClaw skills directory (auto-discovered)
+cd ~/.openclaw/workspace/skills
 git clone https://github.com/alstonzhuang-sys/even-cs-agent.git
 cd even-cs-agent
 
@@ -39,6 +39,10 @@ cd even-cs-agent
 # Or non-interactive
 FEISHU_ID=ou_xxx GEMINI_API_KEY=your_key ./install.sh
 ```
+
+After cloning, OpenClaw automatically discovers the skill via `SKILL.md`. No manual registration needed.
+
+Restart the gateway to activate: `openclaw gateway restart`
 
 ### Manual Setup
 

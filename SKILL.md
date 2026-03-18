@@ -12,6 +12,16 @@
 - User asks for product specs, pricing, compatibility
 - User needs troubleshooting help
 
+## Installation
+
+```bash
+cd ~/.openclaw/workspace/skills
+git clone https://github.com/alstonzhuang-sys/even-cs-agent.git
+cd even-cs-agent && ./install.sh
+```
+
+OpenClaw auto-discovers this skill via SKILL.md. Restart gateway after install.
+
 ## Prerequisites
 
 1. `pip3 install -r requirements.txt`
@@ -40,7 +50,7 @@
 **Step 2**: Execute main.py via stdin:
 
 ```bash
-cd ~/.openclaw/workspace/even-cs-agent && echo '<payload_json>' | python3 main.py
+cd ~/.openclaw/workspace/skills/even-cs-agent && echo '<payload_json>' | python3 main.py
 ```
 
 **Step 3**: Parse JSON output:
