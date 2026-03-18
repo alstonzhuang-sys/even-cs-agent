@@ -6,7 +6,7 @@ tier: 3
 last_updated: 2026/3/5
 ---
 
-# KB Golden Q&A List (v3.0 - High Specificity)
+# KB Golden Q&A List (v3.1.1 - High Specificity)
 *Comprehensive list of 100 Q&A pairs with explicit G1/G2 distinctions, derived from authoritative knowledge base.*
 
 ---
